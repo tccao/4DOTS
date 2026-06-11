@@ -1,6 +1,6 @@
 # 4DOTS Landing Page
 
-A fast, dependency-free landing page for 4DOTS, hosted on GitHub Pages. Lead
+A fast, dependency-free landing page for 4DOTS, hosted on Cloudflare Pages. Lead
 submissions are validated by Cloudflare Turnstile and written to a private
 Google Sheet through a small Google Apps Script web app.
 
@@ -8,7 +8,7 @@ Google Sheet through a small Google Apps Script web app.
 
 ```text
 Visitor
-  -> GitHub Pages static site
+  -> Cloudflare Pages static site
   -> Google Apps Script web app
       -> Cloudflare Turnstile verification
       -> server-side input validation
@@ -21,13 +21,17 @@ in Apps Script Properties.
 ## Repository Structure
 
 ```text
-docs/                 Public GitHub Pages site
+docs/                 Public Cloudflare Pages output
   index.html
   styles.css
   app.js
+  _headers
 apps-script/          Google Apps Script source
   Code.gs
   appsscript.json
+tests/                Automated contract and validation tests
+requirements-dev.txt  Pinned local/CI test dependency
+wrangler.jsonc        Cloudflare Pages project configuration
 assets/               Local design references; not published from docs/
 ```
 
@@ -41,6 +45,26 @@ python3 -m http.server 8000 --directory docs
 
 Open `http://localhost:8000`. The form stays disabled until its public endpoint
 and Turnstile site key are configured.
+
+## Run Automated Tests
+
+Create the local virtual environment and install the test dependency:
+
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements-dev.txt
+```
+
+Run the suite:
+
+```bash
+.venv/bin/pytest
+```
+
+The tests verify the Cloudflare Pages configuration and headers, Apps Script
+timezone, frontend/backend allowed-value contract, backend validation and
+formula-injection protection, and JavaScript syntax. GitHub Actions runs the
+same suite on pushes and pull requests.
 
 ## Configure the Google Sheet
 
@@ -60,7 +84,7 @@ valid submission.
 ## Configure Cloudflare Turnstile
 
 1. Create a free Turnstile widget in the Cloudflare dashboard.
-2. Add the launch hostname, such as `4dots-hub.github.io`, and any custom
+2. Add the launch hostname, such as `4dots.pages.dev`, and any custom
    domain you plan to use.
 3. Copy the public **site key** and private **secret key**.
 4. Put the site key in [`docs/app.js`](docs/app.js):
@@ -70,7 +94,7 @@ valid submission.
    ```
 
 Never put the Turnstile secret key in `docs/` or anywhere else served by
-GitHub Pages.
+Cloudflare Pages.
 
 ## Deploy Google Apps Script
 
@@ -85,7 +109,7 @@ GitHub Pages.
    | `SHEET_ID` | Yes | Google Sheet ID |
    | `TURNSTILE_SECRET` | Yes | Private Turnstile secret key |
    | `SHEET_NAME` | No | Defaults to `Leads` |
-   | `ALLOWED_HOSTNAMES` | Recommended | Comma-separated hosts, such as `4dots-hub.github.io,www.example.com` |
+   | `ALLOWED_HOSTNAMES` | Recommended | Comma-separated hosts, such as `4dots.pages.dev,www.example.com` |
    | `RETURN_URL` | Recommended | Full public landing-page URL |
 
 5. Select **Deploy > New deployment > Web app**.
@@ -106,18 +130,33 @@ submitted values server-side.
 After changing `Code.gs`, create a new Apps Script deployment version so the
 public endpoint receives the update.
 
-## Deploy GitHub Pages
+## Deploy Cloudflare Pages
 
 1. Push the repository to GitHub.
-2. Open **Settings > Pages**.
-3. Under **Build and deployment**, select **Deploy from a branch**.
-4. Select the `main` branch and `/docs` folder.
-5. Save and enable **Enforce HTTPS** when available.
+2. In the Cloudflare dashboard, open **Workers & Pages** and create a Pages
+   application using **Import an existing Git repository**.
+3. Connect this repository and use `main` as the production branch.
+4. Select no framework preset, leave the build command blank, and use `docs` as
+   the build output directory.
+5. Deploy the project. Cloudflare will publish future pushes automatically and
+   create preview deployments for non-production branches.
 
-GitHub will publish the site at:
+The checked-in [`wrangler.jsonc`](wrangler.jsonc) keeps the Pages project name,
+output directory, and compatibility date in source control. Cloudflare will
+publish the site at:
 
 ```text
-https://4dots-hub.github.io/4DOTS/
+https://4dots.pages.dev/
+```
+
+The exact `pages.dev` hostname may differ if the project name is unavailable.
+After the first deployment, add the final hostname to Turnstile and the Apps
+Script `ALLOWED_HOSTNAMES` property, then set `RETURN_URL` to the full site URL.
+
+For an authenticated manual deployment with Wrangler:
+
+```bash
+npx wrangler pages deploy docs
 ```
 
 ## Security Notes
@@ -128,7 +167,7 @@ https://4dots-hub.github.io/4DOTS/
 - The receiver verifies Turnstile, validates allowed choices, limits field
   lengths, rejects malformed fields, uses a honeypot, locks concurrent writes,
   and neutralizes spreadsheet formula injection.
-- GitHub Pages is appropriate for public lead forms, not passwords, card
+- Cloudflare Pages is appropriate for public lead forms, not passwords, card
   details, or other sensitive transactions.
 
 ## Launch Checklist
@@ -137,8 +176,9 @@ https://4dots-hub.github.io/4DOTS/
 - Submit one valid test lead and confirm it appears in the private Sheet.
 - Test invalid email, invalid phone, missing consent, and no selected service.
 - Test on mobile and desktop.
-- Set `RETURN_URL` and `ALLOWED_HOSTNAMES`.
-- Enable HTTPS in GitHub Pages.
+- Set `RETURN_URL` and `ALLOWED_HOSTNAMES` to the final Cloudflare Pages or
+  custom-domain hostname.
+- Confirm Cloudflare Pages serves the security headers from `docs/_headers`.
 - Add a privacy policy before running paid acquisition campaigns.
 
 ## License

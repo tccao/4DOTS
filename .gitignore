@@ -8,9 +8,13 @@
 apps-script/.clasp.json
 
 # Dependencies and generated output
+.venv/
 node_modules/
 dist/
 coverage/
+.pytest_cache/
+__pycache__/
+*.py[cod]
 
 # Editor and OS files
 .DS_Store

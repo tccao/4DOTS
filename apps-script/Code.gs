@@ -116,7 +116,12 @@ function validatePayload_(payload) {
     throw new PublicError("Vui lòng nhập họ và tên.");
   }
 
-  if (!/^[0-9+().\s-]{8,20}$/.test(payload.phone)) {
+  const phoneDigits = payload.phone.replace(/\D/g, "");
+  if (
+    !/^[0-9+().\s-]{8,20}$/.test(payload.phone) ||
+    phoneDigits.length < 8 ||
+    phoneDigits.length > 15
+  ) {
     throw new PublicError("Số điện thoại chưa hợp lệ.");
   }
 
