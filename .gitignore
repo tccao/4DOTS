@@ -1,0 +1,32 @@
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Google Apps Script local tooling
+.clasp.json
+apps-script/.clasp.json
+
+# Dependencies and generated output
+node_modules/
+dist/
+coverage/
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Local logs
+*.log
+npm-debug.log*
+
+# Saved reference pages are for local design reference only
+assets/images/
+
+# Local agent navigation context
+AGENT_REPO_MAP.md
+AGENT_QUICKREF.txt
