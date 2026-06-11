@@ -182,3 +182,18 @@ const vm = require("vm");
 new vm.Script(fs.readFileSync("apps-script/Code.gs", "utf8"));
 """
     )
+
+
+def test_turnstile_errors_expose_diagnostic_code():
+    app = (ROOT / "docs" / "app.js").read_text()
+    backend = CODE_PATH.read_text()
+    assert '"error-callback": (errorCode)' in app
+    assert 'console.error("Turnstile error:", errorCode)' in app
+    assert '"Turnstile validation failed: "' in backend
+    assert 'errorCodes: result["error-codes"] || []' in backend
+
+
+def test_apps_script_return_link_escapes_sandboxed_frame():
+    backend = CODE_PATH.read_text()
+    assert '<base target="_top">' in backend
+    assert '<a href="${safeReturnUrl}" target="_top"${returnAction}>' in backend

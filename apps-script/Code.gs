@@ -167,6 +167,15 @@ function validateTurnstile_(token, config) {
   const hostname = String(result.hostname || "").toLowerCase();
 
   if (!result.success || result.action !== "lead_form") {
+    console.error(
+      "Turnstile validation failed: " +
+        JSON.stringify({
+          success: Boolean(result.success),
+          action: String(result.action || ""),
+          hostname,
+          errorCodes: result["error-codes"] || [],
+        }),
+    );
     throw new PublicError("Xác minh chống spam không thành công. Vui lòng thử lại.");
   }
 
@@ -233,6 +242,7 @@ function renderResponse_(success, returnUrl, publicMessage) {
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <base target="_top">
     <title>${escapeHtml_(title)} | 4DOTS</title>
     <style>
       *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:#110d0b;color:#fcf8f2;font-family:Arial,sans-serif}
@@ -248,7 +258,7 @@ function renderResponse_(success, returnUrl, publicMessage) {
       <div class="mark" aria-hidden="true">${success ? "✓" : "!"}</div>
       <h1>${escapeHtml_(title)}</h1>
       <p>${escapeHtml_(message)}</p>
-      <a href="${safeReturnUrl}"${returnAction}>Quay lại trang 4DOTS</a>
+      <a href="${safeReturnUrl}" target="_top"${returnAction}>Quay lại trang 4DOTS</a>
     </main>
   </body>
 </html>`;

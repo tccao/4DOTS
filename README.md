@@ -96,8 +96,9 @@ valid submission.
 ## Configure Cloudflare Turnstile
 
 1. Create a free Turnstile widget in the Cloudflare dashboard.
-2. Add the launch hostname, such as `4dots.pages.dev`, and any custom
-   domain you plan to use.
+2. Under **Hostname Management**, add the launch hostname, such as
+   `4dots.pages.dev`, and any custom domain you plan to use. Enter hostnames
+   only: do not include `https://`, paths, ports, or wildcards.
 3. Copy the public **site key** and private **secret key**.
 4. Put the site key in [`docs/app.js`](docs/app.js):
 
@@ -107,6 +108,20 @@ valid submission.
 
 Never put the Turnstile secret key in `docs/` or anywhere else served by
 Cloudflare Pages.
+
+If the widget displays **Unable to verify website**, check the error code shown
+below the form or in the browser console:
+
+| Error | Meaning | Fix |
+| --- | --- | --- |
+| `110200` | Domain not authorized | Add the exact current hostname under the widget's Hostname Management |
+| `110100` or `110110` | Invalid or unknown site key | Copy the site key from the same widget again |
+| `400070` | Site key disabled | Re-enable or replace the widget |
+| `200500` | Turnstile iframe blocked | Disable blockers and confirm `challenges.cloudflare.com` can load |
+
+The site key in `docs/app.js` and the `TURNSTILE_SECRET` Apps Script property
+must come from the same Turnstile widget. Also add the same production hostname
+to the Apps Script `ALLOWED_HOSTNAMES` property.
 
 ## Deploy Google Apps Script
 
@@ -141,6 +156,10 @@ submitted values server-side.
 
 After changing `Code.gs`, create a new Apps Script deployment version so the
 public endpoint receives the update.
+
+The Apps Script confirmation page uses top-level navigation for its return
+link. This is required because Apps Script renders HTML inside a sandboxed
+iframe while Cloudflare Pages correctly blocks iframe embedding.
 
 ## Deploy Cloudflare Pages
 

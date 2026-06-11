@@ -44,7 +44,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .site-header .ember-button { padding: 10px 20px; font-size: .82rem; text-transform: uppercase; }
 .hero-content { position: relative; z-index: 2; display: grid; align-items: center; gap: 42px; grid-template-columns: 1fr 1fr; padding-block: 48px 64px; }
 .chip { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border: 1px solid rgba(246,95,50,.4); border-radius: 999px; color: var(--ember-glow); font-size: 1rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
-.hero h1 { margin: 16px 0 12px; font-size: clamp(3rem, 5vw, 5.1rem); font-weight: 900; letter-spacing: -.065em; line-height: 1.03; }
+.hero h1 { margin: 16px 0 12px; font-size: clamp(3rem, 4vw, 5.1rem); font-weight: 900; letter-spacing: -.065em; line-height: 1.03; }
 .hero-intro { max-width: 590px; margin-bottom: 18px; color: rgba(250,248,245,.7); font-size: .95rem; }
 .metrics { display: grid; max-width: 450px; gap: 16px; grid-template-columns: repeat(3, 1fr); margin-bottom: 20px; }
 .metrics strong, .metrics span { display: block; }

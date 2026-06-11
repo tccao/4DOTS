@@ -2,7 +2,7 @@
 
 // Replace these two public values before launch. Never put secret keys here.
 const CONFIG = Object.freeze({
-  formEndpoint: "https://script.google.com/macros/s/AKfycbxNm44nrQRlQzGowpryNQ6q0WiljTXg2loq39cAFhCU_qmd0VSMDOyEoyTsr_6Qxhn7/exec",
+  formEndpoint: "https://script.google.com/macros/s/AKfycbzI-DouAk2vSKIpEKdO0hBMI21lM5vNTbvZqnJV1yU6_vU1lwN_RMMDk5UOzCs8fK-h/exec",
   turnstileSiteKey: "0x4AAAAAADi7M4XA05AxgvHx",
 });
 
@@ -63,8 +63,12 @@ window.onTurnstileLoad = function onTurnstileLoad() {
     "expired-callback": () => {
       setStatus("Phiên xác minh đã hết hạn. Vui lòng xác minh lại.");
     },
-    "error-callback": () => {
-      setStatus("Không thể tải xác minh chống spam. Vui lòng thử lại.");
+    "error-callback": (errorCode) => {
+      console.error("Turnstile error:", errorCode);
+      setStatus(
+        `Không thể tải xác minh chống spam. Mã lỗi: ${errorCode || "không xác định"}.`,
+      );
+      return true;
     },
   });
 };
