@@ -18,7 +18,7 @@ const vm = require("vm");
 const context = { console };
 vm.createContext(context);
 const source = fs.readFileSync("apps-script/Code.gs", "utf8")
-  + "\n;globalThis.__test = { validatePayload_, safeCell_, escapeHtml_, buildLeadRecord_ };";
+  + "\n;globalThis.__test = { HEADERS, validatePayload_, safeCell_, escapeHtml_ };";
 vm.runInContext(source, context);
 """
 
@@ -172,7 +172,7 @@ process.stdout.write(context.__test.safeCell_('=IMPORTXML("x")'));
     assert run_node(script).startswith("'=")
 
 
-def test_sheet_record_maps_source_and_consent_by_header_name():
+def test_sheet_headers_and_appended_values_stay_aligned():
     script = BACKEND_BOOTSTRAP + """
 const payload = {
   fullName: "Lead",
@@ -183,22 +183,26 @@ const payload = {
   website: "",
   source: "4dots-landing-page",
 };
-const record = context.__test.buildLeadRecord_(payload, "date", "uuid");
-const legacyHeaders = [
-  "Received At", "Name", "Phone", "Email", "Services", "Industry", "Website",
-  "Message", "Source", "Consent", "Status", "Submission ID",
+const row = [
+  "date",
+  context.__test.safeCell_(payload.fullName),
+  context.__test.safeCell_(payload.phone),
+  context.__test.safeCell_(payload.email),
+  context.__test.safeCell_(payload.services.join(", ")),
+  context.__test.safeCell_(payload.industry),
+  context.__test.safeCell_(payload.website),
+  context.__test.safeCell_(payload.source),
+  "Yes",
+  "New",
+  "uuid",
 ];
-const row = legacyHeaders.map((header) =>
-  Object.prototype.hasOwnProperty.call(record, header) ? record[header] : ""
-);
-process.stdout.write(JSON.stringify({ record, row }));
+process.stdout.write(JSON.stringify({ headers: context.__test.HEADERS, row }));
 """
     result = json.loads(run_node(script))
-    assert result["record"]["Source"] == "4dots-landing-page"
-    assert result["record"]["Consent"] == "Yes"
-    assert result["row"][7] == ""
-    assert result["row"][8] == "4dots-landing-page"
-    assert result["row"][9] == "Yes"
+    assert len(result["headers"]) == len(result["row"])
+    assert dict(zip(result["headers"], result["row"]))["Source"] == "4dots-landing-page"
+    assert dict(zip(result["headers"], result["row"]))["Consent"] == "Yes"
+    assert "Message" not in result["headers"]
 
 
 def test_javascript_sources_parse():

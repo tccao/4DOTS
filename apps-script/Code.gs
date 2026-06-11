@@ -191,50 +191,27 @@ function appendLead_(payload, config) {
     const spreadsheet = SpreadsheetApp.openById(config.sheetId);
     const sheet = spreadsheet.getSheetByName(config.sheetName) || spreadsheet.insertSheet(config.sheetName);
 
-    const headers = ensureSheetHeaders_(sheet);
-    const lead = buildLeadRecord_(payload, new Date(), Utilities.getUuid());
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow(HEADERS);
+      sheet.setFrozenRows(1);
+    }
 
-    sheet.appendRow(headers.map((header) => Object.prototype.hasOwnProperty.call(lead, header) ? lead[header] : ""));
+    sheet.appendRow([
+      new Date(),
+      safeCell_(payload.fullName),
+      safeCell_(payload.phone),
+      safeCell_(payload.email),
+      safeCell_(payload.services.join(", ")),
+      safeCell_(payload.industry),
+      safeCell_(payload.website),
+      safeCell_(payload.source),
+      "Yes",
+      "New",
+      Utilities.getUuid(),
+    ]);
   } finally {
     lock.releaseLock();
   }
-}
-
-function ensureSheetHeaders_(sheet) {
-  if (sheet.getLastRow() === 0) {
-    sheet.appendRow(HEADERS);
-    sheet.setFrozenRows(1);
-    return HEADERS.slice();
-  }
-
-  const lastColumn = sheet.getLastColumn();
-  const existingHeaders = sheet
-    .getRange(1, 1, 1, lastColumn)
-    .getValues()[0]
-    .map((header) => String(header || "").trim());
-  const missingHeaders = HEADERS.filter((header) => !existingHeaders.includes(header));
-
-  if (missingHeaders.length) {
-    sheet.getRange(1, lastColumn + 1, 1, missingHeaders.length).setValues([missingHeaders]);
-  }
-
-  return existingHeaders.concat(missingHeaders);
-}
-
-function buildLeadRecord_(payload, receivedAt, submissionId) {
-  return {
-    "Received At": receivedAt,
-    Name: safeCell_(payload.fullName),
-    Phone: safeCell_(payload.phone),
-    Email: safeCell_(payload.email),
-    Services: safeCell_(payload.services.join(", ")),
-    Industry: safeCell_(payload.industry),
-    Website: safeCell_(payload.website),
-    Source: safeCell_(payload.source),
-    Consent: "Yes",
-    Status: "New",
-    "Submission ID": submissionId,
-  };
 }
 
 function normalize_(value, maxLength) {
